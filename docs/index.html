@@ -1,196 +1,191 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Intelligent CPU Scheduler</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Intelligent CPU Scheduler</title>
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+  <!-- Local styles -->
+  <link rel="stylesheet" href="styles.css" />
 </head>
-<body class="bg-gray-900 text-gray-200 font-sans min-h-screen flex flex-col transition-colors duration-300">
+<body class="bg-gray-900 text-gray-200 font-sans min-h-screen flex flex-col">
 
-    <header class="bg-gray-800 border-b border-gray-700 sticky top-0 z-50 shadow-md">
-        <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center shadow-lg shadow-blue-500/20">
-                    <i class="fa-solid fa-microchip text-white text-xl"></i>
-                </div>
-                <h1 class="text-xl font-bold tracking-tight text-white">CPU <span class="text-blue-500">Scheduler</span></h1>
-            </div>
-            <button id="btn-contrast" class="p-2 rounded-lg hover:bg-gray-700 transition-colors" title="Toggle High Contrast">
-                <i class="fa-solid fa-circle-half-stroke text-xl"></i>
-            </button>
+  <!-- Header -->
+  <header class="bg-gray-800 border-b border-gray-700 sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center shadow">
+          <i class="fa-solid fa-microchip text-white text-xl"></i>
         </div>
-    </header>
+        <h1 class="text-xl font-bold">CPU <span class="text-blue-400">Scheduler</span></h1>
+      </div>
+      <div class="flex items-center gap-3">
+        <button id="btn-contrast" class="p-2 rounded hover:bg-gray-700" title="Toggle High Contrast">
+          <i class="fa-solid fa-circle-half-stroke"></i>
+        </button>
+        <button id="btn-export" class="p-2 rounded hover:bg-gray-700" title="Export Scenario">
+          <i class="fa-solid fa-file-export"></i>
+        </button>
+        <label class="p-2 rounded hover:bg-gray-700 cursor-pointer" title="Import JSON">
+          <i class="fa-solid fa-file-import"></i>
+          <input id="file-import" type="file" accept=".json" class="hidden" />
+        </label>
+      </div>
+    </div>
+  </header>
 
-    <main class="flex-grow max-w-7xl mx-auto w-full p-4 grid grid-cols-1 lg:grid-cols-12 gap-6">
-        
-        <aside class="lg:col-span-4 space-y-6">
-            
-            <div class="bg-gray-800 rounded-xl border border-gray-700 p-5 shadow-lg">
-                <h2 class="text-sm uppercase tracking-wider text-gray-400 font-semibold mb-4 border-b border-gray-700 pb-2">Configuration</h2>
-                
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-xs text-gray-400 mb-1">Algorithm</label>
-                        <div class="relative">
-                            <select id="algorithm-select" class="w-full bg-gray-900 border border-gray-600 rounded-lg p-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none appearance-none">
-                                <option value="FCFS">First Come First Serve (FCFS)</option>
-                                <option value="SJF_NP">SJF (Non-Preemptive)</option>
-                                <option value="SJF_P">SJF (Preemptive)</option>
-                                <option value="PRIORITY_NP">Priority (Non-Preemptive)</option>
-                                <option value="PRIORITY_P">Priority (Preemptive)</option>
-                                <option value="RR">Round Robin (RR)</option>
-                            </select>
-                            <div class="absolute right-3 top-3 pointer-events-none text-gray-500">
-                                <i class="fa-solid fa-chevron-down text-xs"></i>
-                            </div>
-                        </div>
-                    </div>
+  <!-- Main -->
+  <main class="flex-grow max-w-7xl mx-auto w-full p-4 grid grid-cols-1 lg:grid-cols-12 gap-6">
+    <!-- Left: Controls -->
+    <aside class="lg:col-span-4 space-y-6">
+      <!-- Config -->
+      <div class="bg-gray-800 rounded-xl border border-gray-700 p-5">
+        <h2 class="text-sm text-gray-400 mb-3 uppercase">Configuration</h2>
+        <div class="space-y-3">
+          <div>
+            <label class="block text-xs text-gray-400 mb-1">Algorithm</label>
+            <select id="algorithm-select" class="w-full bg-gray-900 border border-gray-600 rounded p-2 text-sm">
+              <option value="FCFS">FCFS</option>
+              <option value="SJF_NP">SJF — Non-preemptive</option>
+              <option value="SJF_P">SJF — Preemptive</option>
+              <option value="PRIORITY_NP">Priority — Non-preemptive</option>
+              <option value="PRIORITY_P">Priority — Preemptive</option>
+              <option value="RR">Round Robin</option>
+            </select>
+          </div>
 
-                    <div id="quantum-container" class="hidden transition-all duration-300">
-                        <label class="block text-xs text-blue-400 mb-1">Time Quantum</label>
-                        <input type="number" id="time-quantum" value="2" min="1" class="w-full bg-gray-900 border border-blue-500/50 rounded-lg p-2.5 text-sm focus:ring-1 focus:ring-blue-500 outline-none">
-                    </div>
-                </div>
+          <div id="quantum-container" class="hidden">
+            <label class="block text-xs text-blue-400 mb-1">Time Quantum</label>
+            <input type="number" id="time-quantum" value="2" min="1" class="w-full bg-gray-900 border border-blue-500/50 rounded p-2 text-sm" />
+          </div>
+
+          <div>
+            <label class="block text-xs text-gray-400 mb-1">Context Switch (units)</label>
+            <input type="number" id="context-switch" value="0" min="0" class="w-full bg-gray-900 border border-gray-600 rounded p-2 text-sm" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Processes -->
+      <div class="bg-gray-800 rounded-xl border border-gray-700 p-5 flex flex-col h-[520px]">
+        <div class="flex justify-between items-center mb-3">
+          <h2 class="text-sm text-gray-400 uppercase">Processes</h2>
+          <div class="flex gap-2">
+            <button id="btn-add-process" class="bg-blue-600 px-3 py-1.5 rounded text-xs">+ Add</button>
+            <button id="btn-reset-all" class="text-red-400 text-xs">Reset</button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-2 mb-3">
+          <input id="input-arrival" type="number" min="0" value="0" class="bg-gray-900 border border-gray-600 rounded p-1 text-xs text-center" placeholder="Arrival" />
+          <input id="input-burst" type="number" min="1" value="5" class="bg-gray-900 border border-gray-600 rounded p-1 text-xs text-center" placeholder="Burst" />
+          <input id="input-priority" type="number" min="1" value="1" class="bg-gray-900 border border-gray-600 rounded p-1 text-xs text-center" placeholder="Priority" />
+        </div>
+
+        <div class="flex-1 overflow-y-auto pr-2">
+          <div id="process-list" class="space-y-2"></div>
+        </div>
+
+        <div class="mt-4 pt-2 border-t border-gray-700 text-xs text-gray-400">
+          Tip: add processes then press ▶ to simulate.
+        </div>
+      </div>
+    </aside>
+
+    <!-- Right: Visualization -->
+    <section class="lg:col-span-8 space-y-6">
+      <div class="bg-gray-800 rounded-xl border border-gray-700 p-4 flex items-center justify-between gap-3">
+        <div class="flex gap-2 items-center">
+          <button id="btn-back" class="control-btn" title="Step Back"><i class="fa-solid fa-backward-step"></i></button>
+          <button id="btn-play" class="control-btn bg-blue-600 text-white" title="Play/Pause"><i class="fa-solid fa-play"></i></button>
+          <button id="btn-step" class="control-btn" title="Step Forward"><i class="fa-solid fa-forward-step"></i></button>
+          <button id="btn-restart" class="control-btn" title="Reset Simulation"><i class="fa-solid fa-rotate-right"></i></button>
+        </div>
+
+        <div class="flex items-center gap-4">
+          <div class="text-xs text-gray-400 uppercase">Time</div>
+          <div id="timer-display" class="text-2xl font-mono text-blue-400">0</div>
+
+          <div class="flex items-center gap-2">
+            <div class="text-xs text-gray-400">Speed</div>
+            <select id="speed-select" class="bg-gray-900 border border-gray-600 rounded p-1 text-xs">
+              <option value="400">0.25x</option>
+              <option value="200">0.5x</option>
+              <option value="100" selected>1x</option>
+              <option value="50">2x</option>
+              <option value="25">4x</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-gray-800 rounded-xl border border-gray-700 p-5">
+        <h2 class="text-sm text-gray-400 mb-3 uppercase">Gantt Chart</h2>
+        <div id="gantt-container" class="w-full overflow-x-auto pb-2">
+          <div id="gantt-canvas-wrapper" class="relative min-w-full h-40 bg-gray-900 rounded border border-gray-700 overflow-hidden">
+            <svg id="gantt-svg" class="w-full h-full block"></svg>
+            <div id="time-cursor" class="absolute top-0 bottom-0 w-0.5 bg-red-500 z-10" style="left:0"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="bg-gray-800 rounded-xl border border-gray-700 p-5">
+          <h3 class="text-sm text-gray-400 mb-3 uppercase">Summary Metrics</h3>
+          <div class="grid grid-cols-2 gap-4 mb-4">
+            <div class="bg-gray-900 p-3 rounded">
+              <div class="text-[10px] text-gray-500 uppercase">Avg Wait</div>
+              <div id="metric-avg-wait" class="text-xl font-bold text-yellow-400">0.0</div>
             </div>
-
-            <div class="bg-gray-800 rounded-xl border border-gray-700 p-5 shadow-lg flex flex-col h-[500px]">
-                <div class="flex justify-between items-center mb-4 border-b border-gray-700 pb-2">
-                    <h2 class="text-sm uppercase tracking-wider text-gray-400 font-semibold">Processes</h2>
-                    <button id="btn-add-process" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition-all shadow-lg shadow-blue-500/20">
-                        <i class="fa-solid fa-plus mr-1"></i> Add
-                    </button>
-                </div>
-
-                <div class="grid grid-cols-3 gap-2 mb-4 bg-gray-900 p-3 rounded-lg border border-gray-700">
-                    <div>
-                        <label class="text-[10px] text-gray-500 block mb-1">Arrival</label>
-                        <input type="number" id="input-arrival" value="0" min="0" class="w-full bg-gray-800 border border-gray-600 rounded p-1.5 text-xs focus:border-blue-500 outline-none text-center">
-                    </div>
-                    <div>
-                        <label class="text-[10px] text-gray-500 block mb-1">Burst</label>
-                        <input type="number" id="input-burst" value="5" min="1" class="w-full bg-gray-800 border border-gray-600 rounded p-1.5 text-xs focus:border-blue-500 outline-none text-center">
-                    </div>
-                    <div>
-                        <label class="text-[10px] text-gray-500 block mb-1">Priority</label>
-                        <input type="number" id="input-priority" value="1" min="1" class="w-full bg-gray-800 border border-gray-600 rounded p-1.5 text-xs focus:border-blue-500 outline-none text-center">
-                    </div>
-                </div>
-
-                <div class="flex-grow overflow-y-auto custom-scrollbar pr-1">
-                    <div id="process-list" class="space-y-2">
-                        </div>
-                </div>
-                
-                <div class="mt-4 pt-2 border-t border-gray-700 text-center">
-                    <button id="btn-reset-all" class="text-xs text-red-400 hover:text-red-300 transition-colors">
-                        <i class="fa-solid fa-trash mr-1"></i> Reset All Processes
-                    </button>
-                </div>
+            <div class="bg-gray-900 p-3 rounded">
+              <div class="text-[10px] text-gray-500 uppercase">Avg Turnaround</div>
+              <div id="metric-avg-tat" class="text-xl font-bold text-green-400">0.0</div>
             </div>
-        </aside>
-
-        <section class="lg:col-span-8 space-y-6">
-            
-            <div class="bg-gray-800 rounded-xl border border-gray-700 p-4 shadow-lg flex flex-wrap gap-4 items-center justify-between">
-                
-                <div class="flex items-center gap-2">
-                    <button id="btn-back" class="control-btn group" title="Step Back (Left Arrow)">
-                        <i class="fa-solid fa-backward-step"></i>
-                    </button>
-                    <button id="btn-play" class="control-btn bg-blue-600 border-transparent hover:bg-blue-500 text-white shadow-blue-500/20" title="Play/Pause (Space)">
-                        <i class="fa-solid fa-play"></i>
-                    </button>
-                    <button id="btn-step" class="control-btn group" title="Step Forward (Right Arrow)">
-                        <i class="fa-solid fa-forward-step"></i>
-                    </button>
-                    <button id="btn-restart" class="control-btn text-red-400 border-red-900/50 hover:bg-red-900/20" title="Reset Simulation">
-                        <i class="fa-solid fa-rotate-right"></i>
-                    </button>
-                </div>
-
-                <div class="flex items-center gap-4 bg-gray-900 px-4 py-2 rounded-lg border border-gray-700">
-                    <span class="text-xs text-gray-400 uppercase tracking-wider font-bold">Time</span>
-                    <span id="timer-display" class="text-2xl font-mono font-bold text-blue-400">0</span>
-                </div>
-
-                <div class="flex items-center gap-2">
-                    <span class="text-xs text-gray-500">Speed</span>
-                    <select id="speed-select" class="bg-gray-900 border border-gray-600 text-xs rounded p-1.5 outline-none focus:border-blue-500">
-                        <option value="4000">0.25x</option>
-                        <option value="2000">0.5x</option>
-                        <option value="1000" selected>1x</option>
-                        <option value="500">2x</option>
-                        <option value="250">4x</option>
-                    </select>
-                </div>
+            <div class="bg-gray-900 p-3 rounded">
+              <div class="text-[10px] text-gray-500 uppercase">CPU Util</div>
+              <div id="metric-cpu-util" class="text-xl font-bold text-blue-400">0%</div>
             </div>
-
-            <div class="bg-gray-800 rounded-xl border border-gray-700 p-5 shadow-lg relative">
-                <h2 class="text-sm uppercase tracking-wider text-gray-400 font-semibold mb-4">Gantt Chart</h2>
-                
-                <div class="w-full overflow-x-auto custom-scrollbar pb-2" id="gantt-container">
-                    <div class="relative min-w-full h-40 bg-gray-900 rounded-lg border border-gray-700 overflow-hidden" id="gantt-canvas-wrapper">
-                        <svg id="gantt-svg" class="w-full h-full block"></svg>
-                        
-                        <div id="time-cursor" class="absolute top-0 bottom-0 w-0.5 bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)] z-10 transition-all duration-200 pointer-events-none" style="left: 0;"></div>
-                    </div>
-                </div>
+            <div class="bg-gray-900 p-3 rounded">
+              <div class="text-[10px] text-gray-500 uppercase">Throughput</div>
+              <div id="metric-throughput" class="text-xl font-bold text-purple-400">0.0</div>
             </div>
+          </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                
-                <div class="bg-gray-800 rounded-xl border border-gray-700 p-5 shadow-lg">
-                    <h2 class="text-sm uppercase tracking-wider text-gray-400 font-semibold mb-4 border-b border-gray-700 pb-2">Summary Metrics</h2>
-                    
-                    <div class="grid grid-cols-2 gap-4 mb-4">
-                        <div class="bg-gray-900 p-3 rounded-lg border border-gray-700">
-                            <div class="text-[10px] text-gray-500 uppercase">Avg Wait</div>
-                            <div id="metric-avg-wait" class="text-xl font-bold text-yellow-400">0.0</div>
-                        </div>
-                        <div class="bg-gray-900 p-3 rounded-lg border border-gray-700">
-                            <div class="text-[10px] text-gray-500 uppercase">Avg Turnaround</div>
-                            <div id="metric-avg-tat" class="text-xl font-bold text-green-400">0.0</div>
-                        </div>
-                        <div class="bg-gray-900 p-3 rounded-lg border border-gray-700">
-                            <div class="text-[10px] text-gray-500 uppercase">CPU Utilization</div>
-                            <div id="metric-cpu-util" class="text-xl font-bold text-blue-400">0%</div>
-                        </div>
-                        <div class="bg-gray-900 p-3 rounded-lg border border-gray-700">
-                            <div class="text-[10px] text-gray-500 uppercase">Throughput</div>
-                            <div id="metric-throughput" class="text-xl font-bold text-purple-400">0.0</div>
-                        </div>
-                    </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead class="text-gray-400 uppercase text-[10px]">
+                <tr><th>PID</th><th>Comp</th><th>TAT</th><th>Wait</th></tr>
+              </thead>
+              <tbody id="metrics-table-body" class="font-mono text-sm text-gray-300"></tbody>
+            </table>
+          </div>
+        </div>
 
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse">
-                            <thead>
-                                <tr class="text-[10px] text-gray-500 uppercase border-b border-gray-700">
-                                    <th class="pb-1">PID</th>
-                                    <th class="pb-1">Comp</th>
-                                    <th class="pb-1">TAT</th>
-                                    <th class="pb-1">Wait</th>
-                                </tr>
-                            </thead>
-                            <tbody id="metrics-table-body" class="text-xs font-mono text-gray-300">
-                                </tbody>
-                        </table>
-                    </div>
-                </div>
+        <div class="bg-gray-800 rounded-xl border border-gray-700 p-5 flex flex-col h-[350px]">
+          <h3 class="text-sm text-gray-400 mb-3 uppercase">Decision Log</h3>
+          <div id="decision-log" class="flex-grow overflow-y-auto font-mono text-xs text-gray-300"></div>
+        </div>
+      </div>
+    </section>
+  </main>
 
-                <div class="bg-gray-800 rounded-xl border border-gray-700 p-5 shadow-lg flex flex-col h-[350px]">
-                    <h2 class="text-sm uppercase tracking-wider text-gray-400 font-semibold mb-2 border-b border-gray-700 pb-2">Decision Log</h2>
-                    <div id="decision-log" class="flex-grow overflow-y-auto custom-scrollbar font-mono text-xs space-y-2 pr-1">
-                        <div class="text-gray-600 italic">Simulation pending...</div>
-                    </div>
-                </div>
-            </div>
+  <!-- Modal root -->
+  <div id="modal-root" class="modal-overlay" aria-hidden="true" role="dialog" aria-modal="true" style="display:none;">
+    <div class="modal-panel" role="document" tabindex="-1" id="modal-panel">
+      <div class="modal-header">
+        <div class="modal-title" id="modal-title">Modal Title</div>
+        <button class="modal-close" id="modal-close" aria-label="Close dialog">&times;</button>
+      </div>
+      <div class="modal-body" id="modal-body"></div>
+      <div class="modal-footer" id="modal-footer"></div>
+    </div>
+  </div>
 
-        </section>
-    </main>
-
-    <script src="app.js"></script>
+  <!-- Local script -->
+  <script src="app.js" defer></script>
 </body>
 </html>
